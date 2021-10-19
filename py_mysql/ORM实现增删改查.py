@@ -37,7 +37,7 @@ class Student(Base):
 Session = sessionmaker(bind=connect)
 
 
-# In[25]:
+# In[53]:
 
 
 class OrmTest(object):
@@ -61,11 +61,35 @@ class OrmTest(object):
     def get_one(self):
         return self.session.query(Student).get(1)
     
+    # 查询多条记录
     def get_more(self):
         return self.session.query(Student).all()
+    
+    # 修改数据
+    def update_data(self,pk):
+        new_obj = self.session.query(Student).get(pk)
+        
+        if new_obj:
+            new_obj.Sage = 100
+            self.session.add(new_obj)
+            self.session.commit()
+            return True
+        else:
+            return False
+        
+    # 删除数据
+    def delete_data(self,pk):
+        new_obj = self.session.query(Student).get(pk)
+        
+        if new_obj:
+            self.session.delete(new_obj)
+            self.session.commit()
+            return True
+        else:
+            return False
 
 
-# In[26]:
+# In[54]:
 
 
 test = OrmTest()
@@ -73,17 +97,30 @@ test = OrmTest()
 test.get_one()
 
 
-# In[28]:
+# In[56]:
 
 
 Students = test.get_more()
 
 
-# In[33]:
+# In[57]:
 
 
 for i in Students:
     print("Sno is :{},Sname is;{},Ssex is :{},Sage is :{},Sdept is :{}".format(i.Sno,i.Sname,i.Ssex,i.Sage,i.Sdept),end='\n')
+
+
+# In[42]:
+
+
+# 修改学号为201215122的学生的年龄
+test.update_data(201215122)
+
+
+# In[55]:
+
+
+test.delete_data(20210125)
 
 
 # In[ ]:
