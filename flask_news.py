@@ -6,6 +6,8 @@ from flask import Flask
 from wsgiref.simple_server import make_server
 
 app = Flask(__name__)
+
+# 数据库连接属性
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:011022@localhost:3306/news'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -49,6 +51,34 @@ def detail(pk):
     '''新闻的类别'''
     # 查询类别为name的新闻数据
     return render_template("detail.html", pk=pk)
+
+
+@app.route('/admin/')
+@app.route('/admin/<int:page>')
+def admin(page=None):
+    """ 后台管理首页 """
+    if page is None:  # 如果没有传这个参数,默认为第一页
+        page = 1
+    page_data = News.query.paginate(page=page, per_page=5)
+    return render_template("admin/index.html", page_data=page_data)
+
+
+@app.route('/admin/add/', methods=['GET', 'POST'])
+def add():
+    """ 新增新闻 """
+    return render_template("admin/add.html")
+
+
+@app.route('/admin/update/<int:pk>/', methods=['GET', 'POST'])
+def update(pk):
+    """ 修改新闻 """
+    return render_template("admin/update.html")
+
+
+@app.route('/admin/delete/<int:pk>/', methods=['POST'])
+def delete(pk):
+    """ 删除新闻 """
+    return 'yes'
 
 
 if __name__ == "__main__":
