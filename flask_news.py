@@ -3,7 +3,7 @@ from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
 
-from flask import render_template, flash, url_for,redirect
+from flask import render_template, flash, url_for, redirect, abort, request
 from flask import Flask
 from wsgiref.simple_server import make_server
 
@@ -26,6 +26,7 @@ class News(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.String(2000), nullable=False)
+    types = db.Column(db.String(10), nullable=False)
     image = db.Column(db.String(200), nullable=False)
     author = db.Column(db.String(20))
     view_count = db.Column(db.Integer)
@@ -77,10 +78,9 @@ def add():
         n1 = News(
             title=form.title.data,
             content=form.content.data,
-            img_url=form.img_url.data,
-            news_type=form.news_type.data,
+            image=form.img_url.data,
+            types=form.news_type.data,
             created_at=datetime.now(),
-            updated_at=datetime.now(),
         )
         db.session.add(n1)
         db.session.commit()
@@ -92,13 +92,35 @@ def add():
 @app.route('/admin/update/<int:pk>/', methods=['GET', 'POST'])
 def update(pk):
     """ 修改新闻 """
-    return render_template("admin/update.html")
+    obj = News.query.get(pk)
+    if obj is None:
+        abort(404)
+    form = NewsForm(obj=obj)
+    print(form)
+    if form.validate_on_submit():
+        obj.title = form.title.data
+        obj.content = form.content.data
+        obj.news_type = form.news_type.data
+
+        db.session.add(obj)
+        db.session.commit()
+        flash("修改成功")
+        return redirect(url_for('admin'))
+    return render_template("admin/update.html", form=form)
 
 
 @app.route('/admin/delete/<int:pk>/', methods=['POST'])
 def delete(pk):
     """ 删除新闻 """
-    return 'yes'
+    if request.method == 'POST':
+        obj = News.query.get(pk)
+        if obj is None:
+            return 'no'
+        obj.is_valid = False
+        db.session.add(obj)
+        db.session.commit()
+        return 'yes'
+    return 'no'
 
 
 if __name__ == "__main__":
